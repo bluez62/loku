@@ -1,0 +1,1883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lo-ku — Interactive Conlang Academy</title>
+  <!-- Load Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Load Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            sand: {
+              50: '#FDFBF7',
+              100: '#F7F3EB',
+              200: '#EFE8D8',
+              300: '#E2D6BE',
+              800: '#3D372E',
+              900: '#26221C',
+            },
+            terracotta: {
+              50: '#FEF5F2',
+              100: '#FDE8E1',
+              500: '#E85D3F',
+              600: '#D14628',
+              700: '#AF361C',
+            },
+            sage: {
+              50: '#F3F8F5',
+              100: '#E1EFE7',
+              500: '#2E8B57',
+              600: '#236E44',
+              700: '#1B5535',
+            },
+            ochre: {
+              50: '#FEF9EC',
+              100: '#FDF0CE',
+              500: '#D99B26',
+              600: '#B87E14',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Tactile 3D button press aesthetic */
+    .btn-tactile {
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+    .btn-tactile:active {
+      transform: translateY(2px);
+    }
+
+    /* 3D Flashcard Flip */
+    .perspective-1000 {
+      perspective: 1000px;
+    }
+    .transform-style-3d {
+      transform-style: preserve-3d;
+      transition: transform 0.55s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    .rotate-y-180 {
+      transform: rotateY(180deg);
+    }
+    .backface-hidden {
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    /* Custom subtle scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F7F3EB;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #D6CBB8;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #B8AA93;
+    }
+  </style>
+</head>
+<body class="bg-sand-50 text-sand-900 font-sans antialiased selection:bg-terracotta-100 selection:text-terracotta-700 min-h-screen flex flex-col">
+
+  <!-- Toast Notification Banner (Replaces alert()) -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Top Navigation Header -->
+  <header class="sticky top-0 z-40 bg-sand-50/95 backdrop-blur-md border-b border-sand-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between py-3.5 gap-3">
+        <!-- Brand Logo -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('overview')">
+            <div class="w-10 h-10 rounded-2xl bg-terracotta-500 text-white font-extrabold text-lg flex items-center justify-center shadow-sm border-b-4 border-terracotta-700">
+              Lo
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h1 class="text-xl font-extrabold tracking-tight text-sand-900">Lo-ku</h1>
+                <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-sage-100 text-sage-700 border border-sage-500/20">Conlang Academy</span>
+              </div>
+              <p class="text-xs text-sand-800/70">Minimalist Toki Pona-inspired language</p>
+            </div>
+          </div>
+
+          <!-- Quick Greeting Audio Pill on Mobile -->
+          <button onclick="speakLoku('He! Mi nu lo-ku.')" class="md:hidden inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sand-100 hover:bg-sand-200 text-xs font-semibold text-sand-800 border border-sand-300">
+            <span>🔊</span> "He!"
+          </button>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 no-scrollbar" aria-label="Primary Navigation">
+          <button data-tab="overview" onclick="switchTab('overview')" class="nav-tab px-3.5 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all bg-sand-900 text-white shadow-sm">
+            1. Overview & Sounds
+          </button>
+          <button data-tab="dictionary" onclick="switchTab('dictionary')" class="nav-tab px-3.5 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all text-sand-800 hover:bg-sand-200/70">
+            2. Dictionary & Combiner
+          </button>
+          <button data-tab="grammar" onclick="switchTab('grammar')" class="nav-tab px-3.5 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all text-sand-800 hover:bg-sand-200/70">
+            3. Grammar & Particles
+          </button>
+          <button data-tab="numbers" onclick="switchTab('numbers')" class="nav-tab px-3.5 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all text-sand-800 hover:bg-sand-200/70">
+            4. Number Builder
+          </button>
+          <button data-tab="practice" onclick="switchTab('practice')" class="nav-tab px-3.5 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all text-sand-800 hover:bg-sand-200/70 flex items-center gap-1.5">
+            <span>5. Practice Arena</span>
+            <span class="w-2 h-2 rounded-full bg-terracotta-500"></span>
+          </button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+
+    <!-- =================================================================== -->
+    <!-- TAB 1: OVERVIEW & PRONUNCIATION                                     -->
+    <!-- =================================================================== -->
+    <section id="tab-overview" class="tab-section space-y-8">
+      <!-- Hero Banner -->
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-sand-200 shadow-sm relative overflow-hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div class="lg:col-span-8 space-y-4">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-terracotta-50 text-terracotta-700 text-xs font-bold uppercase tracking-wider border border-terracotta-100">
+              <span>✨</span> Welcome to Lo-ku (Word-Small)
+            </div>
+            <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-sand-900 leading-tight">
+              Speak big ideas with <span class="text-terracotta-600">tiny, modular words.</span>
+            </h2>
+            <p class="text-sand-800/80 text-base sm:text-lg leading-relaxed max-w-2xl">
+              <strong>Lo-ku</strong> is an oligo-isolating constructed language inspired by <em>Toki Pona</em>. Instead of memorizing thousands of vocabulary words, you combine ~60 crisp, two-letter roots with hyphens to build concepts from scratch.
+            </p>
+            <div class="flex flex-wrap gap-3 pt-2">
+              <button onclick="switchTab('dictionary')" class="btn-tactile px-5 py-3 rounded-2xl bg-terracotta-500 hover:bg-terracotta-600 text-white font-bold text-sm border-b-4 border-terracotta-700 shadow-sm">
+                Explore All 60+ Words →
+              </button>
+              <button onclick="switchTab('practice')" class="btn-tactile px-5 py-3 rounded-2xl bg-sand-100 hover:bg-sand-200 text-sand-900 font-bold text-sm border-b-4 border-sand-300">
+                Start Flashcards & Quiz
+              </button>
+            </div>
+          </div>
+
+          <!-- Interactive Mini Phrase Showcase -->
+          <div class="lg:col-span-4 bg-sand-100 rounded-2xl p-5 border border-sand-200 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-sand-800/60">Example Sentence</span>
+              <button onclick="speakLoku('Mi se lo-ka')" class="px-2.5 py-1 rounded-lg bg-white hover:bg-sand-50 text-xs font-bold text-terracotta-600 border border-sand-200 shadow-xs flex items-center gap-1">
+                <span>🔊</span> Listen
+              </button>
+            </div>
+            <div class="text-2xl font-extrabold font-mono text-sand-900 tracking-tight">
+              "Mi se lo-ka."
+            </div>
+            <p class="text-sm text-sand-800/80">
+              <strong>Translation:</strong> "I see a book."
+            </p>
+            <div class="grid grid-cols-3 gap-2 pt-1 text-center">
+              <div class="bg-white p-2 rounded-xl border border-sand-200">
+                <div class="font-mono font-bold text-terracotta-600">Mi</div>
+                <div class="text-[11px] text-sand-800/70">I (Subject)</div>
+              </div>
+              <div class="bg-white p-2 rounded-xl border border-sand-200">
+                <div class="font-mono font-bold text-sage-600">se</div>
+                <div class="text-[11px] text-sand-800/70">see (Verb)</div>
+              </div>
+              <div class="bg-white p-2 rounded-xl border border-sand-200">
+                <div class="font-mono font-bold text-ochre-600">lo-ka</div>
+                <div class="text-[11px] text-sand-800/70">word-object</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Core Pillars Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div class="bg-white rounded-3xl p-6 border border-sand-200 shadow-xs space-y-2">
+          <div class="w-10 h-10 rounded-2xl bg-sage-100 text-sage-700 flex items-center justify-center font-bold text-lg">1</div>
+          <h3 class="text-lg font-bold text-sand-900">Strict SVO Word Order</h3>
+          <p class="text-sm text-sand-800/80 leading-relaxed">
+            Sentences follow <strong>Subject – Verb – Object</strong> just like English. For example: <code class="px-1.5 py-0.5 bg-sand-100 rounded font-mono text-xs font-bold">Yu ta fu</code> ("You eat/consume food").
+          </p>
+        </div>
+        <div class="bg-white rounded-3xl p-6 border border-sand-200 shadow-xs space-y-2">
+          <div class="w-10 h-10 rounded-2xl bg-ochre-100 text-ochre-600 flex items-center justify-center font-bold text-lg">2</div>
+          <h3 class="text-lg font-bold text-sand-900">Zero Articles ("A" / "The")</h3>
+          <p class="text-sm text-sand-800/80 leading-relaxed">
+            Lo-ku drops unnecessary filler words like <em>"a"</em>, <em>"an"</em>, and <em>"the"</em>. Context tells you whether <code class="px-1.5 py-0.5 bg-sand-100 rounded font-mono text-xs font-bold">lo-ka</code> means "a book" or "the book".
+          </p>
+        </div>
+        <div class="bg-white rounded-3xl p-6 border border-sand-200 shadow-xs space-y-2">
+          <div class="w-10 h-10 rounded-2xl bg-terracotta-100 text-terracotta-600 flex items-center justify-center font-bold text-lg">3</div>
+          <h3 class="text-lg font-bold text-sand-900">Hyphenated Compounds</h3>
+          <p class="text-sm text-sand-800/80 leading-relaxed">
+            No single word for "lava" or "book"? Link roots with hyphens! Order changes meaning: <code class="px-1.5 py-0.5 bg-sand-100 rounded font-mono text-xs font-bold">Wa-fa</code> is steam, while <code class="px-1.5 py-0.5 bg-sand-100 rounded font-mono text-xs font-bold">Fa-wa</code> is lava!
+          </p>
+        </div>
+      </div>
+
+      <!-- Pronunciation Guide -->
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-sand-200 shadow-xs space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="text-2xl font-extrabold text-sand-900">Pronunciation & Phonetics Guide</h3>
+            <p class="text-sm text-sand-800/75 mt-1">
+              Consonants sound just like English. Vowels follow crisp, pure 5-vowel phonetic rules—click any card to hear an audio simulation!
+            </p>
+          </div>
+          <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl bg-sand-100 text-sand-800 border border-sand-200">
+            <span>🎧</span> Interactive Audio Enabled
+          </span>
+        </div>
+
+        <!-- 5 Pure Vowels Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4" id="vowel-cards">
+          <!-- Populated via JS for clean event binding -->
+        </div>
+
+        <!-- Special Exceptions Box -->
+        <div class="bg-ochre-50 rounded-2xl p-5 border border-ochre-500/30">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="px-2.5 py-0.5 rounded-lg bg-ochre-500 text-white text-xs font-bold uppercase">Important Exceptions</span>
+            <h4 class="font-bold text-sand-900 text-base">3 Special Word Pronunciations</h4>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white rounded-xl p-4 border border-ochre-500/20 flex items-center justify-between">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="font-mono text-xl font-extrabold text-terracotta-600">Ai</span>
+                  <span class="text-xs font-semibold px-2 py-0.5 rounded bg-sand-100 text-sand-800">/eye/</span>
+                </div>
+                <p class="text-xs text-sand-800/75 mt-1">Pronounced like English <strong>"eye"</strong> (Mind / Soul / Abstract particle), not "ah-ee".</p>
+              </div>
+              <button onclick="speakPhonetic('eye', 'Ai')" class="p-2.5 rounded-xl bg-sand-100 hover:bg-terracotta-100 text-sand-900 hover:text-terracotta-700 transition-colors" title="Hear Ai">
+                🔊
+              </button>
+            </div>
+
+            <div class="bg-white rounded-xl p-4 border border-ochre-500/20 flex items-center justify-between">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="font-mono text-xl font-extrabold text-terracotta-600">In</span>
+                  <span class="text-xs font-semibold px-2 py-0.5 rounded bg-sand-100 text-sand-800">/in/</span>
+                </div>
+                <p class="text-xs text-sand-800/75 mt-1">Pronounced just like the standard English word <strong>"in"</strong> (not "een").</p>
+              </div>
+              <button onclick="speakPhonetic('in', 'In')" class="p-2.5 rounded-xl bg-sand-100 hover:bg-terracotta-100 text-sand-900 hover:text-terracotta-700 transition-colors" title="Hear In">
+                🔊
+              </button>
+            </div>
+
+            <div class="bg-white rounded-xl p-4 border border-ochre-500/20 flex items-center justify-between">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="font-mono text-xl font-extrabold text-terracotta-600">On</span>
+                  <span class="text-xs font-semibold px-2 py-0.5 rounded bg-sand-100 text-sand-800">/on/</span>
+                </div>
+                <p class="text-xs text-sand-800/75 mt-1">Pronounced just like standard English <strong>"on"</strong> (Instead / Rather than).</p>
+              </div>
+              <button onclick="speakPhonetic('on', 'On')" class="p-2.5 rounded-xl bg-sand-100 hover:bg-terracotta-100 text-sand-900 hover:text-terracotta-700 transition-colors" title="Hear On">
+                🔊
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Custom Word Synthesizer -->
+        <div class="bg-sand-100 rounded-2xl p-5 border border-sand-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+          <div>
+            <h4 class="font-bold text-sand-900 text-sm">Test Lo-ku Phonetic Reader</h4>
+            <p class="text-xs text-sand-800/75">Type any Lo-ku word or sentence to see its syllable breakdown and hear how it sounds.</p>
+          </div>
+          <div class="flex flex-1 max-w-md gap-2">
+            <input id="phonetic-tester-input" type="text" value="Sa an li yu?" placeholder="e.g. Ko-tu-yo-hu-ye-so-i" class="flex-1 px-3.5 py-2.5 rounded-xl bg-white border border-sand-300 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-terracotta-500" />
+            <button onclick="testCustomPhonetics()" class="btn-tactile px-4 py-2.5 rounded-xl bg-sand-900 hover:bg-sand-800 text-white text-sm font-bold whitespace-nowrap">
+              🔊 Pronounce
+            </button>
+          </div>
+        </div>
+        <div id="phonetic-breakdown-output" class="hidden text-xs font-mono bg-white p-3 rounded-xl border border-sand-200 text-sand-800"></div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 2: INTERACTIVE DICTIONARY & COMPOUND WORD COMBINER              -->
+    <!-- =================================================================== -->
+    <section id="tab-dictionary" class="tab-section hidden space-y-8">
+
+      <!-- Interactive Compound Word Sandbox ("Word Combiner") -->
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-sand-200 shadow-xs space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sage-100 text-sage-700 text-xs font-bold mb-1">
+              <span>🧪</span> Interactive Sandbox
+            </div>
+            <h2 class="text-2xl font-extrabold text-sand-900">Compound Word Combiner</h2>
+            <p class="text-sm text-sand-800/75">
+              Combine 2 or 3 Lo-ku roots with hyphens to invent nouns, verbs, plurals, or tense/particle phrases. Watch how word order and particles change the meaning!
+            </p>
+          </div>
+          <button onclick="resetCombiner()" class="self-start md:self-auto px-3.5 py-2 rounded-xl bg-sand-100 hover:bg-sand-200 text-xs font-bold text-sand-800 border border-sand-300">
+            Clear Slots
+          </button>
+        </div>
+
+        <!-- Combiner Controls -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <!-- Left: 3 Slot Selectors -->
+          <div class="lg:col-span-7 space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="bg-sand-50 p-3.5 rounded-2xl border border-sand-200">
+                <label class="block text-xs font-bold uppercase tracking-wider text-sand-800/60 mb-1.5">Slot 1 (First Root)</label>
+                <select id="comb-slot-1" onchange="updateCombiner()" class="w-full p-2.5 rounded-xl bg-white border border-sand-300 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-terracotta-500">
+                  <!-- Populated by JS -->
+                </select>
+              </div>
+              <div class="bg-sand-50 p-3.5 rounded-2xl border border-sand-200">
+                <label class="block text-xs font-bold uppercase tracking-wider text-sand-800/60 mb-1.5">Slot 2 (Second Root)</label>
+                <select id="comb-slot-2" onchange="updateCombiner()" class="w-full p-2.5 rounded-xl bg-white border border-sand-300 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-terracotta-500">
+                  <!-- Populated by JS -->
+                </select>
+              </div>
+              <div class="bg-sand-50 p-3.5 rounded-2xl border border-sand-200">
+                <label class="block text-xs font-bold uppercase tracking-wider text-sand-800/60 mb-1.5">Slot 3 (Optional)</label>
+                <select id="comb-slot-3" onchange="updateCombiner()" class="w-full p-2.5 rounded-xl bg-white border border-sand-300 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-terracotta-500">
+                  <!-- Populated by JS -->
+                </select>
+              </div>
+            </div>
+
+            <!-- Preset Classic Examples -->
+            <div>
+              <span class="block text-xs font-bold uppercase tracking-wider text-sand-800/60 mb-2">Try Canon & Classic Presets:</span>
+              <div class="flex flex-wrap gap-2" id="combiner-presets">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Live Compound Analysis Card -->
+          <div class="lg:col-span-5 bg-sand-900 text-white rounded-2xl p-6 space-y-4 shadow-md">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-sand-300">Synthesized Lo-ku Term</span>
+              <div class="flex items-center gap-2">
+                <button onclick="swapSlots1And2()" class="px-2.5 py-1 rounded-lg bg-sand-800 hover:bg-sand-700 text-xs font-semibold text-sand-200 border border-sand-700" title="Swap Slot 1 & 2 to see order effect">
+                  ⇄ Swap 1 & 2
+                </button>
+                <button onclick="speakCombinerResult()" class="px-3 py-1 rounded-lg bg-terracotta-500 hover:bg-terracotta-600 text-xs font-bold text-white">
+                  🔊 Say It
+                </button>
+              </div>
+            </div>
+
+            <div id="comb-output-word" class="text-3xl sm:text-4xl font-extrabold font-mono tracking-tight text-ochre-100">
+              Lo-ka
+            </div>
+
+            <div id="comb-literal-breakdown" class="text-sm text-sand-200 font-medium">
+              Literal: <span class="text-white font-bold">Word + Object</span>
+            </div>
+
+            <div id="comb-meaning-box" class="bg-sand-800/90 rounded-xl p-3.5 border border-sand-700 text-sm text-sand-100 leading-relaxed">
+              <strong>Meaning:</strong> Book / Written physical document.
+            </div>
+
+            <div id="comb-particle-lint" class="text-xs rounded-xl p-3 bg-sage-700/40 border border-sage-500/40 text-sage-100">
+              ✅ Valid word order! Modifier/concept order makes logical sense.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Searchable & Filterable Full Lexicon -->
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-sand-200 shadow-xs space-y-6">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-extrabold text-sand-900">Complete Lo-ku Dictionary</h2>
+            <p class="text-sm text-sand-800/75 mt-1">
+              All <span id="dict-total-count" class="font-bold text-sand-900">63</span> official Lo-ku words with exact definitions, particle placement tags, and audio playback.
+            </p>
+          </div>
+
+          <!-- Search Input -->
+          <div class="relative w-full md:w-80">
+            <input id="dict-search" type="text" oninput="renderDictionary()" placeholder="Search Lo-ku or English (e.g. fire, Mi, book)..." class="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-sand-50 border border-sand-300 text-sm focus:outline-none focus:ring-2 focus:ring-terracotta-500" />
+            <span class="absolute left-3.5 top-2.5 text-sand-800/50">🔍</span>
+          </div>
+        </div>
+
+        <!-- Category Filter Pills -->
+        <div class="flex flex-wrap gap-2" id="dict-category-filters">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Dictionary Grid -->
+        <div id="dict-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 3: GRAMMAR & PARTICLES GUIDE                                    -->
+    <!-- =================================================================== -->
+    <section id="tab-grammar" class="tab-section hidden space-y-8">
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-sand-200 shadow-xs space-y-3">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-ochre-100 text-ochre-600 text-xs font-bold uppercase tracking-wider">
+          <span>📐</span> Structural Rules
+        </span>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-sand-900">Grammar, Word Order & Particle Placement</h2>
+        <p class="text-sm sm:text-base text-sand-800/80 max-w-3xl">
+          Lo-ku grammar is built for speed and flexibility. Master these four core patterns to build any sentence—from simple greetings to complex questions and tenses.
+        </p>
+      </div>
+
+      <!-- Rule 1 & Rule 2 Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Rule 1: SVO & No Articles -->
+        <div class="bg-white rounded-3xl p-6 border border-sand-200 shadow-xs space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xl font-extrabold text-sand-900">1. SVO Order & No Articles</h3>
+            <span class="px-2.5 py-1 rounded-lg bg-sand-100 font-mono text-xs font-bold text-sand-800">S + V + O</span>
+          </div>
+          <p class="text-sm text-sand-800/80 leading-relaxed">
+            Sentences always follow <strong>Subject → Verb → Object</strong>. Do not translate English <em>"a"</em>, <em>"an"</em>, or <em>"the"</em>—they do not exist in Lo-ku.
+          </p>
+          <div class="space-y-2.5 bg-sand-50 p-4 rounded-2xl border border-sand-200">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="font-mono font-bold text-terracotta-600">Mi se lo-ka.</span>
+                <p class="text-xs text-sand-800/75">I see [a/the] book ("word-object").</p>
+              </div>
+              <button onclick="speakLoku('Mi se lo-ka')" class="px-2.5 py-1 rounded-lg bg-white border border-sand-200 text-xs font-bold">🔊</button>
+            </div>
+            <hr class="border-sand-200">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="font-mono font-bold text-terracotta-600">Ha gi wa.</span>
+                <p class="text-xs text-sand-800/75">He gives water.</p>
+              </div>
+              <button onclick="speakLoku('Ha gi wa')" class="px-2.5 py-1 rounded-lg bg-white border border-sand-200 text-xs font-bold">🔊</button>
+            </div>
+            <hr class="border-sand-200">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="font-mono font-bold text-terracotta-600">To ke fu-mo.</span>
+                <p class="text-xs text-sand-800/75">She wants good food.</p>
+              </div>
+              <button onclick="speakLoku('To ke fu-mo')" class="px-2.5 py-1 rounded-lg bg-white border border-sand-200 text-xs font-bold">🔊</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rule 2: Reduplication (Plurals & Intensity) -->
+        <div class="bg-white rounded-3xl p-6 border border-sand-200 shadow-xs space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xl font-extrabold text-sand-900">2. Reduplication (Plurals & Intensity)</h3>
+            <span class="px-2.5 py-1 rounded-lg bg-sage-100 font-mono text-xs font-bold text-sage-700">X-X = 2×</span>
+          </div>
+          <p class="text-sm text-sand-800/80 leading-relaxed">
+            Say a word twice separated by a hyphen (<code class="font-mono bg-sand-100 px-1 rounded">Word-Word</code>) to make nouns <strong>plural</strong> or double the <strong>intensity</strong> of a modifier.
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="bg-sand-50 p-4 rounded-2xl border border-sand-200">
+              <div class="text-xs font-bold text-sand-800/60 uppercase">Noun → Plural</div>
+              <div class="mt-1 font-mono text-base font-bold text-sand-900">Lu → <span class="text-sage-600">Lu-lu</span></div>
+              <p class="text-xs text-sand-800/75 mt-1">"Place" becomes <strong>"Places"</strong>.</p>
+            </div>
+            <div class="bg-sand-50 p-4 rounded-2xl border border-sand-200">
+              <div class="text-xs font-bold text-sand-800/60 uppercase">Modifier → Doubled</div>
+              <div class="mt-1 font-mono text-base font-bold text-sand-900">Pu → <span class="text-terracotta-600">Pu-pu</span></div>
+              <p class="text-xs text-sand-800/75 mt-1">"Big" becomes <strong>"Enormous / Huge"</strong>.</p>
+            </div>
+            <div class="bg-sand-50 p-4 rounded-2xl border border-sand-200">
+              <div class="text-xs font-bold text-sand-800/60 uppercase">People → Group</div>
+              <div class="mt-1 font-mono text-base font-bold text-sand-900">Pe → <span class="text-sage-600">Pe-pe</span></div>
+              <p class="text-xs text-sand-800/75 mt-1">"Person" becomes <strong>"People / Crowd"</strong>.</p>
+            </div>
+            <div class="bg-sand-50 p-4 rounded-2xl border border-sand-200">
+              <div class="text-xs font-bold text-sand-800/60 uppercase">Small → Tiny</div>
+              <div class="mt-1 font-mono text-base font-bold text-sand-900">Ku → <span class="text-terracotta-600">Ku-ku</span></div>
+              <p class="text-xs text-sand-800/75 mt-1">"Small" becomes <strong>"Microscopic / Tiny"</strong>.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rule 3: Word Order Sensitivity in Compounds -->
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-sand-200 shadow-xs space-y-5">
+        <div>
+          <h3 class="text-xl font-extrabold text-sand-900">3. Compound Order Matters!</h3>
+          <p class="text-sm text-sand-800/80 mt-1">
+            When linking two roots with a hyphen, the order determines the core concept vs. its property. Flipping the words creates a completely different meaning:
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-sand-50 rounded-2xl p-5 border border-sand-200 space-y-2">
+            <div class="flex items-center justify-between font-mono font-bold text-base">
+              <span class="text-terracotta-600">Wa-fa</span>
+              <span class="text-sand-400">vs</span>
+              <span class="text-ochre-600">Fa-wa</span>
+            </div>
+            <p class="text-xs text-sand-800/80 leading-relaxed">
+              <strong>Wa-fa</strong> (Water + Fire) = <em>Hot water or Steam</em>.<br>
+              <strong>Fa-wa</strong> (Fire + Water) = <em>Liquid fire or Lava</em>!
+            </p>
+          </div>
+
+          <div class="bg-sand-50 rounded-2xl p-5 border border-sand-200 space-y-2">
+            <div class="flex items-center justify-between font-mono font-bold text-base">
+              <span class="text-sage-600">Lo-ka</span>
+              <span class="text-sand-400">vs</span>
+              <span class="text-sand-500">Ka-lo</span>
+            </div>
+            <p class="text-xs text-sand-800/80 leading-relaxed">
+              <strong>Lo-ka</strong> (Word + Object) = <em>Book</em> (makes natural sense).<br>
+              <strong>Ka-lo</strong> (Object + Word) = <em>"Object-word"</em> (unnatural for book).
+            </p>
+          </div>
+
+          <div class="bg-sand-50 rounded-2xl p-5 border border-sand-200 space-y-2">
+            <div class="flex items-center justify-between font-mono font-bold text-base">
+              <span class="text-terracotta-600">Ka-ba</span>
+              <span class="text-sand-400">vs</span>
+              <span class="text-sage-600">Ai-ba</span>
+            </div>
+            <p class="text-xs text-sand-800/80 leading-relaxed">
+              <strong>Ka-ba</strong> (Physical + Break) = <em>Physically smash/destroy</em>.<br>
+              <strong>Ai-ba</strong> (Mind + Break) = <em>Forget, confuse, or heartbreak</em>!
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rule 4: Before vs After Particles Cheat Sheet -->
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-sand-200 shadow-xs space-y-6">
+        <div>
+          <h3 class="text-xl sm:text-2xl font-extrabold text-sand-900">4. Particle Placement Cheat Sheet</h3>
+          <p class="text-sm text-sand-800/80 mt-1">
+            Particles attach with hyphens to modify verbs, nouns, questions, and tenses. Memorize which particles attach <strong>BEFORE</strong> a root and which attach <strong>AFTER</strong>:
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- BEFORE PARTICLES -->
+          <div class="rounded-2xl border-2 border-terracotta-500/30 bg-terracotta-50/40 p-5 space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="px-3 py-1 rounded-xl bg-terracotta-500 text-white text-xs font-extrabold uppercase tracking-wider">
+                ← Before Particles (Prefix)
+              </span>
+              <span class="font-mono text-xs font-bold text-terracotta-700">[Particle]-[Word]</span>
+            </div>
+
+            <div class="space-y-2.5">
+              <div class="bg-white p-3.5 rounded-xl border border-terracotta-100">
+                <div class="flex items-center justify-between">
+                  <span class="font-mono font-extrabold text-terracotta-600 text-base">Ka-</span>
+                  <span class="text-xs font-semibold text-sand-800/70">Physical / Matter marker</span>
+                </div>
+                <p class="text-xs text-sand-800/80 mt-1">Distinguishes physical things from abstract concepts: <code class="font-mono font-bold">Ka-fa</code> (physical fire), <code class="font-mono font-bold">Ka-ba</code> (physically break).</p>
+              </div>
+
+              <div class="bg-white p-3.5 rounded-xl border border-terracotta-100">
+                <div class="flex items-center justify-between">
+                  <span class="font-mono font-extrabold text-terracotta-600 text-base">Ai-</span>
+                  <span class="text-xs font-semibold text-sand-800/70">Mind / Abstract marker</span>
+                </div>
+                <p class="text-xs text-sand-800/80 mt-1">Turns actions/concepts emotional or mental: <code class="font-mono font-bold">Ai-ba</code> (forget, confuse, or heartbreak).</p>
+              </div>
+
+              <div class="bg-white p-3.5 rounded-xl border border-terracotta-100">
+                <div class="flex items-center justify-between">
+                  <span class="font-mono font-extrabold text-terracotta-600 text-base">Do-</span>
+                  <span class="text-xs font-semibold text-sand-800/70">Cause / Make marker</span>
+                </div>
+                <p class="text-xs text-sand-800/80 mt-1">Placed before a root to express causing or creating a state (e.g., <code class="font-mono font-bold">Do-mo</code> = improve / make good).</p>
+              </div>
+
+              <div class="bg-white p-3.5 rounded-xl border border-terracotta-100">
+                <div class="flex items-center justify-between">
+                  <span class="font-mono font-extrabold text-terracotta-600 text-base">Wo-</span>
+                  <span class="text-xs font-semibold text-sand-800/70">Ownership / Possession</span>
+                </div>
+                <p class="text-xs text-sand-800/80 mt-1">Marks possession before a pronoun or noun (e.g., <code class="font-mono font-bold">Wo-mi</code> = my / mine, <code class="font-mono font-bold">Wo-yu</code> = yours).</p>
+              </div>
+
+              <div class="bg-white p-3.5 rounded-xl border border-terracotta-100">
+                <div class="flex items-center justify-between">
+                  <span class="font-mono font-extrabold text-terracotta-600 text-base">Sa-</span>
+                  <span class="text-xs font-semibold text-sand-800/70">Question / If / Uncertain</span>
+                </div>
+                <p class="text-xs text-sand-800/80 mt-1">
+                  Forms question words: <code class="font-mono font-bold">Sa-do</code> (why), <code class="font-mono font-bold">Sa-ti</code> (when), <code class="font-mono font-bold">Sa-lu</code> (where). Also used standalone at the start of polite questions: <code class="font-mono font-bold">"Sa an li yu?"</code> (Polite "Is this you?" vs casual <code class="font-mono">"An li yu?"</code>).
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- AFTER PARTICLES & TENSE / ACTION -->
+          <div class="space-y-6">
+            <div class="rounded-2xl border-2 border-sage-500/30 bg-sage-50/40 p-5 space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="px-3 py-1 rounded-xl bg-sage-600 text-white text-xs font-extrabold uppercase tracking-wider">
+                  After Particles (Suffix) →
+                </span>
+                <span class="font-mono text-xs font-bold text-sage-700">[Word]-[Particle]</span>
+              </div>
+
+              <div class="space-y-2.5">
+                <div class="bg-white p-3.5 rounded-xl border border-sage-100">
+                  <div class="flex items-center justify-between">
+                    <span class="font-mono font-extrabold text-sage-700 text-base">-No</span>
+                    <span class="text-xs font-semibold text-sand-800/70">Negation / Opposite</span>
+                  </div>
+                  <p class="text-xs text-sand-800/80 mt-1">Negates or reverses a verb: <code class="font-mono font-bold">Go-no</code> (return / go back), <code class="font-mono font-bold">Se-no</code> (don't know).</p>
+                </div>
+
+                <div class="bg-white p-3.5 rounded-xl border border-sage-100">
+                  <div class="flex items-center justify-between">
+                    <span class="font-mono font-extrabold text-sage-700 text-base">-Pa</span>
+                    <span class="text-xs font-semibold text-sand-800/70">Past Tense (like English "-ed")</span>
+                  </div>
+                  <p class="text-xs text-sand-800/80 mt-1">Attaches after verbs: <code class="font-mono font-bold">Go-pa</code> (went / traveled), <code class="font-mono font-bold">Le-pa</code> (did).</p>
+                </div>
+
+                <div class="bg-white p-3.5 rounded-xl border border-sage-100">
+                  <div class="flex items-center justify-between">
+                    <span class="font-mono font-extrabold text-sage-700 text-base">-Te</span>
+                    <span class="text-xs font-semibold text-sand-800/70">Future Tense</span>
+                  </div>
+                  <p class="text-xs text-sand-800/80 mt-1">Marks future action: <code class="font-mono font-bold">Le-te</code> (will), <code class="font-mono font-bold">Go-te</code> (will go).</p>
+                </div>
+
+                <div class="bg-white p-3.5 rounded-xl border border-sage-100">
+                  <div class="flex items-center justify-between">
+                    <span class="font-mono font-extrabold text-sage-700 text-base">-Vu</span>
+                    <span class="text-xs font-semibold text-sand-800/70">Present Tense</span>
+                  </div>
+                  <p class="text-xs text-sand-800/80 mt-1">Explicitly marks happening right now: <code class="font-mono font-bold">Le-vu</code> (doing right now).</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Particle Le Note -->
+            <div class="rounded-2xl bg-sand-900 text-white p-5 space-y-2">
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded bg-ochre-500 text-sand-900 font-mono text-xs font-extrabold">Le-</span>
+                <h4 class="font-bold text-sm">Special Action Particle ("Do")</h4>
+              </div>
+              <p class="text-xs text-sand-200 leading-relaxed">
+                <strong>Le</strong> means "Do" and acts as an active verb-maker in front of nouns/concepts: <code class="font-mono text-ochre-100 font-bold">le-fa</code> means "burning or heating something", while <code class="font-mono text-ochre-100 font-bold">le-pa</code> ("did") and <code class="font-mono text-ochre-100 font-bold">le-te</code> ("will") act as auxiliary tense helpers!
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 4: INTERACTIVE NUMBER BUILDER (0 to 9,999)                      -->
+    <!-- =================================================================== -->
+    <section id="tab-numbers" class="tab-section hidden space-y-8">
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-sand-200 shadow-xs space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-terracotta-50 text-terracotta-700 text-xs font-bold uppercase tracking-wider mb-1">
+              <span>🔢</span> Base-10 Multiplicative System
+            </span>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-sand-900">Lo-ku Number Builder (0 – 9,999)</h2>
+            <p class="text-sm text-sand-800/75 mt-1">
+              Lo-ku uses digits <strong>0–9</strong> plus place-value multipliers <strong>So (10)</strong>, <strong>Hu (100)</strong>, and <strong>Tu (1,000)</strong> linked with hyphens.
+            </p>
+          </div>
+        </div>
+
+        <!-- Interactive Input & Display -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          <div class="lg:col-span-5 bg-sand-50 rounded-2xl p-6 border border-sand-200 flex flex-col justify-between space-y-5">
+            <div class="space-y-2">
+              <label for="number-input" class="block text-xs font-bold uppercase tracking-wider text-sand-800/70">
+                Enter Any Number (0 to 9,999)
+              </label>
+              <div class="flex gap-2">
+                <input
+                  id="number-input"
+                  type="number"
+                  min="0"
+                  max="9999"
+                  value="9481"
+                  oninput="convertNumberToLoku()"
+                  class="w-full px-4 py-3.5 rounded-2xl bg-white border-2 border-sand-300 font-mono text-2xl font-extrabold text-sand-900 focus:outline-none focus:border-terracotta-500"
+                />
+                <button onclick="randomLokuNumber()" class="btn-tactile px-4 py-3 rounded-2xl bg-sand-200 hover:bg-sand-300 text-sand-900 font-bold text-xs whitespace-nowrap" title="Generate Random Number">
+                  🎲 Random
+                </button>
+              </div>
+            </div>
+
+            <!-- Quick Example Buttons -->
+            <div class="space-y-2">
+              <span class="block text-xs font-bold uppercase tracking-wider text-sand-800/60">Quick Examples:</span>
+              <div class="flex flex-wrap gap-2">
+                <button onclick="setNumberInput(0)" class="px-3 py-1.5 rounded-xl bg-white hover:bg-sand-100 border border-sand-300 font-mono text-xs font-bold">0</button>
+                <button onclick="setNumberInput(7)" class="px-3 py-1.5 rounded-xl bg-white hover:bg-sand-100 border border-sand-300 font-mono text-xs font-bold">7</button>
+                <button onclick="setNumberInput(10)" class="px-3 py-1.5 rounded-xl bg-white hover:bg-sand-100 border border-sand-300 font-mono text-xs font-bold">10</button>
+                <button onclick="setNumberInput(42)" class="px-3 py-1.5 rounded-xl bg-white hover:bg-sand-100 border border-sand-300 font-mono text-xs font-bold">42</button>
+                <button onclick="setNumberInput(305)" class="px-3 py-1.5 rounded-xl bg-white hover:bg-sand-100 border border-sand-300 font-mono text-xs font-bold">305</button>
+                <button onclick="setNumberInput(2026)" class="px-3 py-1.5 rounded-xl bg-white hover:bg-sand-100 border border-sand-300 font-mono text-xs font-bold">2026</button>
+                <button onclick="setNumberInput(9481)" class="px-3 py-1.5 rounded-xl bg-terracotta-100 hover:bg-terracotta-200 border border-terracotta-500/30 text-terracotta-700 font-mono text-xs font-bold">9481 (Canon!)</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Output Card -->
+          <div class="lg:col-span-7 bg-sand-900 text-white rounded-2xl p-6 sm:p-8 flex flex-col justify-between space-y-5 shadow-md">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-sand-300">Lo-ku Translation</span>
+              <div class="flex items-center gap-2">
+                <button onclick="copyNumberResult()" class="px-3 py-1.5 rounded-xl bg-sand-800 hover:bg-sand-700 text-xs font-semibold text-sand-200 border border-sand-700">
+                  📋 Copy
+                </button>
+                <button onclick="speakNumberResult()" class="px-3.5 py-1.5 rounded-xl bg-terracotta-500 hover:bg-terracotta-600 text-xs font-bold text-white">
+                  🔊 Pronounce
+                </button>
+              </div>
+            </div>
+
+            <div id="num-loku-output" class="text-3xl sm:text-4xl font-extrabold font-mono text-ochre-100 break-words leading-snug">
+              Ko-tu-yo-hu-ye-so-i
+            </div>
+
+            <div class="space-y-2">
+              <div class="text-xs font-bold uppercase tracking-wider text-sand-400">Step-by-Step Literal Breakdown:</div>
+              <div id="num-breakdown-pills" class="flex flex-wrap gap-2">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reference Number Chart -->
+        <div class="pt-4 space-y-3">
+          <h3 class="text-lg font-extrabold text-sand-900">Complete Number Root Reference (Click to Hear)</h3>
+          <div id="number-reference-grid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 5: INTERACTIVE PRACTICE ARENA (FLASHCARDS & QUIZ)               -->
+    <!-- =================================================================== -->
+    <section id="tab-practice" class="tab-section hidden space-y-8">
+      <!-- Mode Switcher & Stats Header -->
+      <div class="bg-white rounded-3xl p-6 border border-sand-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-2xl font-extrabold text-sand-900">Interactive Practice Arena</h2>
+          <p class="text-sm text-sand-800/75">Drill vocabulary with flip flashcards or test your mastery in the Lo-ku challenge quiz.</p>
+        </div>
+
+        <div class="flex items-center gap-2 bg-sand-100 p-1.5 rounded-2xl border border-sand-200 self-start sm:self-auto">
+          <button id="mode-btn-flashcards" onclick="setPracticeMode('flashcards')" class="px-4 py-2 rounded-xl text-sm font-bold bg-white text-sand-900 shadow-xs transition-all">
+            🗂️ Flashcards
+          </button>
+          <button id="mode-btn-quiz" onclick="setPracticeMode('quiz')" class="px-4 py-2 rounded-xl text-sm font-bold text-sand-800 hover:text-sand-900 transition-all">
+            🎯 Mastery Quiz
+          </button>
+        </div>
+      </div>
+
+      <!-- SUB-MODE A: FLASHCARDS -->
+      <div id="practice-flashcards" class="space-y-6">
+        <!-- Deck Filter & Progress -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-sand-800/60">Deck:</span>
+            <select id="flashcard-deck-select" onchange="initFlashcards()" class="px-3.5 py-2 rounded-xl bg-white border border-sand-300 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-terracotta-500">
+              <option value="all">All Vocabulary + Compounds (75 Cards)</option>
+              <option value="core">Core Roots Only (63 Cards)</option>
+              <option value="compounds">Compound Words & Particles (12 Cards)</option>
+              <option value="Pronouns">Pronouns</option>
+              <option value="Verbs/Actions">Verbs & Actions</option>
+              <option value="Particles/Grammar/Connectors">Particles & Grammar</option>
+              <option value="Numbers">Numbers</option>
+            </select>
+            <button onclick="shuffleFlashcards()" class="px-3.5 py-2 rounded-xl bg-sand-100 hover:bg-sand-200 border border-sand-300 text-xs font-bold text-sand-900">
+              🔀 Shuffle
+            </button>
+          </div>
+          <div class="text-sm font-bold text-sand-800">
+            Card <span id="fc-counter" class="text-terracotta-600 font-mono">1 / 75</span>
+          </div>
+        </div>
+
+        <!-- 3D Flip Card Container -->
+        <div class="max-w-xl mx-auto perspective-1000">
+          <div id="flashcard-inner" onclick="flipFlashcard()" class="relative w-full h-80 cursor-pointer transform-style-3d">
+            <!-- Front -->
+            <div class="absolute inset-0 backface-hidden bg-white rounded-3xl p-8 border-2 border-sand-200 shadow-md flex flex-col items-center justify-between text-center">
+              <div class="w-full flex items-center justify-between">
+                <span id="fc-category-badge" class="px-3 py-1 rounded-full bg-sand-100 text-sand-800 text-xs font-bold">Category</span>
+                <button onclick="event.stopPropagation(); speakCurrentFlashcard();" class="px-3 py-1.5 rounded-xl bg-terracotta-50 hover:bg-terracotta-100 text-terracotta-700 text-xs font-bold">
+                  🔊 Listen
+                </button>
+              </div>
+
+              <div class="space-y-2">
+                <div id="fc-front-word" class="text-5xl sm:text-6xl font-extrabold font-mono text-sand-900 tracking-tight">
+                  Mi
+                </div>
+                <div id="fc-front-phonetic" class="text-sm font-mono text-sand-800/60">
+                  /mee/
+                </div>
+              </div>
+
+              <div class="text-xs font-semibold text-sand-800/50">
+                Click card to flip for definition ↻
+              </div>
+            </div>
+
+            <!-- Back -->
+            <div class="absolute inset-0 backface-hidden rotate-y-180 bg-sand-900 text-white rounded-3xl p-8 border-2 border-sand-800 shadow-md flex flex-col items-center justify-between text-center">
+              <div class="w-full flex items-center justify-between">
+                <span class="px-3 py-1 rounded-full bg-sand-800 text-ochre-100 text-xs font-bold font-mono" id="fc-back-mini">Mi</span>
+                <span class="text-xs text-sand-400">Meaning & Usage</span>
+              </div>
+
+              <div class="space-y-3 max-w-md">
+                <div id="fc-back-meaning" class="text-2xl sm:text-3xl font-extrabold text-white leading-snug">
+                  Self / Speaker / I
+                </div>
+                <p id="fc-back-note" class="text-xs sm:text-sm text-sand-300 leading-relaxed">
+                  First-person singular pronoun. Example: "Mi se lo-ka" (I see a book).
+                </p>
+              </div>
+
+              <div class="text-xs font-semibold text-sand-400">
+                Click to flip back ↺
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Flashcard Navigation Controls -->
+        <div class="max-w-xl mx-auto flex items-center justify-between gap-4">
+          <button onclick="prevFlashcard()" class="btn-tactile flex-1 py-3.5 rounded-2xl bg-white hover:bg-sand-100 border-2 border-sand-200 font-bold text-sm text-sand-900">
+            ← Previous
+          </button>
+          <button onclick="flipFlashcard()" class="btn-tactile px-6 py-3.5 rounded-2xl bg-sand-200 hover:bg-sand-300 font-bold text-sm text-sand-900">
+            Flip
+          </button>
+          <button onclick="nextFlashcard()" class="btn-tactile flex-1 py-3.5 rounded-2xl bg-terracotta-500 hover:bg-terracotta-600 border-b-4 border-terracotta-700 font-bold text-sm text-white">
+            Next Card →
+          </button>
+        </div>
+      </div>
+
+      <!-- SUB-MODE B: MASTERY QUIZ -->
+      <div id="practice-quiz" class="hidden max-w-2xl mx-auto space-y-6">
+        <!-- Score & Streak Bar -->
+        <div class="bg-white rounded-2xl p-4 border border-sand-200 flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div>
+              <span class="text-xs text-sand-800/60 font-bold uppercase block">Score</span>
+              <span id="quiz-score" class="text-xl font-extrabold font-mono text-sage-600">0 / 0</span>
+            </div>
+            <div class="h-8 w-px bg-sand-200"></div>
+            <div>
+              <span class="text-xs text-sand-800/60 font-bold uppercase block">Streak</span>
+              <span id="quiz-streak" class="text-xl font-extrabold font-mono text-terracotta-600">0 🔥</span>
+            </div>
+          </div>
+          <button onclick="generateQuizQuestion()" class="px-3.5 py-2 rounded-xl bg-sand-100 hover:bg-sand-200 text-xs font-bold text-sand-900 border border-sand-300">
+            Skip Question ↻
+          </button>
+        </div>
+
+        <!-- Question Card -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-sand-200 shadow-sm space-y-6">
+          <div class="space-y-2">
+            <span id="quiz-type-badge" class="inline-block px-3 py-1 rounded-full bg-ochre-100 text-ochre-600 text-xs font-bold uppercase tracking-wider">
+              Compound Logic
+            </span>
+            <h3 id="quiz-question-text" class="text-xl sm:text-2xl font-extrabold text-sand-900 leading-snug">
+              How do you say "Book" in Lo-ku?
+            </h3>
+            <p id="quiz-question-hint" class="text-xs text-sand-800/70">
+              Think about combining "Word" + "Object".
+            </p>
+          </div>
+
+          <!-- Options Grid -->
+          <div id="quiz-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <!-- Populated by JS -->
+          </div>
+
+          <!-- Feedback & Explanation Box -->
+          <div id="quiz-feedback" class="hidden rounded-2xl p-4 border text-sm leading-relaxed space-y-3">
+            <div id="quiz-feedback-title" class="font-extrabold text-base"></div>
+            <p id="quiz-feedback-explanation"></p>
+            <button onclick="generateQuizQuestion()" class="btn-tactile px-5 py-2.5 rounded-xl bg-sand-900 hover:bg-sand-800 text-white font-bold text-xs">
+              Next Question →
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Minimalist Footer -->
+  <footer class="border-t border-sand-200 bg-white mt-12 py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-sand-800/70">
+      <div class="flex items-center gap-2">
+        <span class="font-extrabold text-sand-900">Lo-ku</span>
+        <span>•</span>
+        <span>Minimalist Constructed Language Learning Hub</span>
+      </div>
+      <div class="font-mono">
+        "He! Mi ke nu lo-ku ja yu." (Hello! I want to speak Lo-ku with you.)
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===================================================================== -->
+  <!-- JAVASCRIPT APPLICATION LOGIC & COMPLETE LEXICON DATA                  -->
+  <!-- ===================================================================== -->
+  <script>
+    // -----------------------------------------------------------------------
+    // 1. COMPLETE LO-KU LEXICON DATA (All 63 Roots + Canon Notes)
+    // -----------------------------------------------------------------------
+    const LOKU_LEXICON = [
+      // Pronouns
+      { word: "Mi", phonetic: "mee", category: "Pronouns", meaning: "Self / Speaker / I", note: "First-person pronoun ('I', 'me')." },
+      { word: "Yu", phonetic: "yoo", category: "Pronouns", meaning: "Other / Listener / You", note: "Second-person pronoun ('you')." },
+      { word: "Ha", phonetic: "hah", category: "Pronouns", meaning: "He / Him", note: "Third-person masculine pronoun." },
+      { word: "To", phonetic: "toh", category: "Pronouns", meaning: "She / Her", note: "Third-person feminine pronoun." },
+      { word: "Da", phonetic: "dah", category: "Pronouns", meaning: "They / Them", note: "Third-person plural or gender-neutral pronoun." },
+
+      // Nouns & Core Concepts
+      { word: "Ka", phonetic: "kah", category: "Nouns/Concepts", meaning: "Object / Physical Thing / Matter", particle: "Before-Particle", note: "Also acts as a Before-Particle to specify physical matter (e.g., Ka-fa = physical fire, Ka-ba = physically break)." },
+      { word: "Lu", phonetic: "loo", category: "Nouns/Concepts", meaning: "Place / Space / Area / Room", note: "Reduplicated: Lu-lu = Places." },
+      { word: "Ti", phonetic: "tee", category: "Nouns/Concepts", meaning: "Time / Duration / Moment", note: "Used in Sa-ti ('when')." },
+      { word: "Wa", phonetic: "wah", category: "Nouns/Concepts", meaning: "Water / Fluid / Liquid", note: "Order matters: Wa-fa = hot water/steam, Fa-wa = lava." },
+      { word: "Fa", phonetic: "fah", category: "Nouns/Concepts", meaning: "Fire / Energy / Heat / Light", note: "With action particle: le-fa = burning or heating something." },
+      { word: "Ai", phonetic: "eye", category: "Nouns/Concepts", meaning: "Mind / Thought / Soul / Feeling", particle: "Before-Particle", note: "Exception pronunciation: sounds like English 'eye'. Also Before-Particle for abstract/mental meaning (Ai-ba = forget, confuse, or heartbreak)." },
+      { word: "Lo", phonetic: "loh", category: "Nouns/Concepts", meaning: "Word / Sign / Code / Language", note: "Lo-ku = this language; Lo-ka = book ('word-object')." },
+      { word: "Na", phonetic: "nah", category: "Nouns/Concepts", meaning: "Body / Living Thing / Nature", note: "Refers to physical organisms, anatomy, or the natural world." },
+      { word: "Ga", phonetic: "gah", category: "Nouns/Concepts", meaning: "Gas / Air / Wind", note: "Represents atmosphere, breath, air, or gases." },
+      { word: "Fu", phonetic: "foo", category: "Nouns/Concepts", meaning: "Food", note: "Any edible nourishment or meal." },
+      { word: "Pe", phonetic: "peh", category: "Nouns/Concepts", meaning: "Person / Human", note: "Reduplicated: Pe-pe = people." },
+      { word: "Su", phonetic: "soo", category: "Modifiers/Colors", meaning: "Shape", note: "Form, geometry, or outline of an object." },
+
+      // Verbs & Actions
+      { word: "Do", phonetic: "doh", category: "Verbs/Actions", meaning: "To make / Create / Cause", particle: "Before-Particle", note: "Also a Before-Particle. In questions: Sa-do = why." },
+      { word: "Go", phonetic: "goh", category: "Verbs/Actions", meaning: "To move / Go / Travel / Change location", note: "Go-no = return; Go-pa = went / traveled." },
+      { word: "Ta", phonetic: "tah", category: "Verbs/Actions", meaning: "To take / Get / Hold / Consume", note: "Covers grabbing, acquiring, eating, or drinking." },
+      { word: "Gi", phonetic: "gee", category: "Verbs/Actions", meaning: "To give / Send / Share / Emit", note: "Hard 'g' as in 'go' + 'ee'." },
+      { word: "Se", phonetic: "seh", category: "Verbs/Actions", meaning: "To see / Perceive / Sense / Know", note: "Se-no = don't know." },
+      { word: "Vi", phonetic: "vee", category: "Verbs/Actions", meaning: "To live / Grow / Exist / All", note: "Dual meaning in lexicon: functions both as the verb 'to live/grow/exist' and quantifier 'all'." },
+      { word: "Ba", phonetic: "bah", category: "Verbs/Actions", meaning: "To break / Destroy / Divide / Stop", note: "Ka-ba = physically break; Ai-ba = forget/confuse/heartbreak." },
+      { word: "Ma", phonetic: "mah", category: "Verbs/Actions", meaning: "To mix / Combine / Join / Be with", note: "Used for uniting things or accompanying someone." },
+      { word: "Ke", phonetic: "keh", category: "Verbs/Actions", meaning: "To want / Desire / Need", note: "Expresses need, wish, or desire." },
+      { word: "Nu", phonetic: "noo", category: "Verbs/Actions", meaning: "To speak / Express / Communicate", note: "Used for talking, signing, or expressing thoughts." },
+      { word: "Hi", phonetic: "hee", category: "Verbs/Actions", meaning: "To hear", note: "Pronounced 'hee' (like English 'he')." },
+      { word: "Le", phonetic: "leh", category: "Verbs/Actions", meaning: "Do (Action Particle)", particle: "Action Particle", note: "Functions as 'do' and as an action prefix (e.g., le-fa = burning/heating; le-pa = did; le-te = will)." },
+
+      // Modifiers, Qualities & Colors
+      { word: "Mo", phonetic: "moh", category: "Modifiers/Colors", meaning: "Yes / Good / Positive / Safe / Helpful", note: "General positive affirmation or quality." },
+      { word: "Po", phonetic: "poh", category: "Modifiers/Colors", meaning: "Bad / Negative / Harmful / Dangerous", note: "General negative quality or danger." },
+      { word: "Pu", phonetic: "poo", category: "Modifiers/Colors", meaning: "Big / High / Intense", note: "Reduplicated: Pu-pu = enormous." },
+      { word: "Ku", phonetic: "koo", category: "Modifiers/Colors", meaning: "Small / Low / Weak", note: "Appears in the language's name: Lo-ku." },
+      { word: "Fi", phonetic: "fee", category: "Modifiers/Colors", meaning: "Finished / Done / Complete", note: "Marks completion of an action or task." },
+      { word: "Fo", phonetic: "foh", category: "Modifiers/Colors", meaning: "Fake", note: "Artificial, false, or imitation." },
+      { word: "La", phonetic: "lah", category: "Modifiers/Colors", meaning: "Real", note: "True, genuine, or authentic." },
+      { word: "Vo", phonetic: "voh", category: "Modifiers/Colors", meaning: "Some", note: "Partial quantity or an unspecified amount." },
+      { word: "Ri", phonetic: "ree", category: "Modifiers/Colors", meaning: "Red", note: "Color root: Red." },
+      { word: "Bi", phonetic: "bee", category: "Modifiers/Colors", meaning: "Blue", note: "Color root: Blue." },
+      { word: "Yi", phonetic: "yee", category: "Modifiers/Colors", meaning: "Yellow", note: "Color root: Yellow." },
+      { word: "Wi", phonetic: "wee", category: "Modifiers/Colors", meaning: "White", note: "Color root: White." },
+      { word: "Bu", phonetic: "boo", category: "Modifiers/Colors", meaning: "Black", note: "Color root: Black." },
+      { word: "De", phonetic: "deh", category: "Modifiers/Colors", meaning: "Gray", note: "Color root: Gray." },
+      { word: "We", phonetic: "weh", category: "Modifiers/Colors", meaning: "Brown", note: "Color root: Brown." },
+
+      // Particles, Grammar & Connectors
+      { word: "No", phonetic: "noh", category: "Particles/Grammar/Connectors", meaning: "No / Not / Absence / Negation Particle", particle: "After-Particle", note: "Attaches AFTER words to negate or reverse them (Go-no = return, Se-no = don't know)." },
+      { word: "Pa", phonetic: "pah", category: "Particles/Grammar/Connectors", meaning: "Past", particle: "After-Particle", note: "Attaches AFTER verbs for past tense (le-pa = did, Go-pa = went/traveled)." },
+      { word: "Te", phonetic: "teh", category: "Particles/Grammar/Connectors", meaning: "Future", particle: "After-Particle", note: "Attaches AFTER verbs for future tense (le-te = will)." },
+      { word: "Vu", phonetic: "voo", category: "Particles/Grammar/Connectors", meaning: "Present", particle: "After-Particle", note: "Attaches AFTER verbs for present tense." },
+      { word: "Sa", phonetic: "sah", category: "Particles/Grammar/Connectors", meaning: "Question particle / If / Uncertain / What / How", particle: "Before-Particle", note: "Before-Particle: sa-do (why), sa-ti (when), sa-lu (where). Starts polite questions: 'Sa an li yu?'." },
+      { word: "Wo", phonetic: "woh", category: "Particles/Grammar/Connectors", meaning: "Ownership / Possession", particle: "Before-Particle", note: "Before-Particle indicating possession (e.g., Wo-mi = my/mine)." },
+      { word: "Li", phonetic: "lee", category: "Particles/Grammar/Connectors", meaning: "This / Here / Specific", note: "Demonstrative pointer ('this', 'here')." },
+      { word: "Ja", phonetic: "jah", category: "Particles/Grammar/Connectors", meaning: "And / With / Connector", note: "Connects nouns, clauses, or accompaniment." },
+      { word: "He", phonetic: "heh", category: "Particles/Grammar/Connectors", meaning: "Hello / Greeting", note: "Standard friendly greeting in Lo-ku." },
+      { word: "An", phonetic: "ahn", category: "Particles/Grammar/Connectors", meaning: "Is / Are / Am", note: "Copula verb linking subject and predicate (e.g., 'An li yu?')." },
+      { word: "Ro", phonetic: "roh", category: "Particles/Grammar/Connectors", meaning: "Or", note: "Logical alternative connector." },
+      { word: "Bo", phonetic: "boh", category: "Particles/Grammar/Connectors", meaning: "Because / So / For", note: "Causal connector explaining reason or result." },
+      { word: "On", phonetic: "on", category: "Particles/Grammar/Connectors", meaning: "Instead / Rather than", note: "Exception pronunciation: pronounced like standard English 'on'." },
+      { word: "Zi", phonetic: "zee", category: "Particles/Grammar/Connectors", meaning: "But", note: "Contrasting conjunction." },
+      { word: "In", phonetic: "in", category: "Particles/Grammar/Connectors", meaning: "In", note: "Exception pronunciation: pronounced like standard English 'in'." },
+
+      // Numbers
+      { word: "O", phonetic: "oh", category: "Numbers", meaning: "0 (Zero)", note: "Digit 0." },
+      { word: "I", phonetic: "ee", category: "Numbers", meaning: "1 (One)", note: "Digit 1." },
+      { word: "Ni", phonetic: "nee", category: "Numbers", meaning: "2 (Two)", note: "Digit 2." },
+      { word: "Ne", phonetic: "neh", category: "Numbers", meaning: "3 (Three)", note: "Digit 3." },
+      { word: "Yo", phonetic: "yoh", category: "Numbers", meaning: "4 (Four)", note: "Digit 4." },
+      { word: "Gu", phonetic: "goo", category: "Numbers", meaning: "5 (Five)", note: "Digit 5." },
+      { word: "Ru", phonetic: "roo", category: "Numbers", meaning: "6 (Six)", note: "Digit 6." },
+      { word: "Si", phonetic: "see", category: "Numbers", meaning: "7 (Seven)", note: "Digit 7." },
+      { word: "Ye", phonetic: "yeh", category: "Numbers", meaning: "8 (Eight)", note: "Digit 8." },
+      { word: "Ko", phonetic: "koh", category: "Numbers", meaning: "9 (Nine)", note: "Digit 9." },
+      { word: "So", phonetic: "soh", category: "Numbers", meaning: "10 (Ten)", note: "Tens multiplier (e.g., Ye-so = 80)." },
+      { word: "Hu", phonetic: "hoo", category: "Numbers", meaning: "100 (Hundred)", note: "Hundreds multiplier (e.g., Yo-hu = 400)." },
+      { word: "Tu", phonetic: "too", category: "Numbers", meaning: "1,000 (Thousand)", note: "Thousands multiplier (e.g., Ko-tu = 9,000)." }
+    ];
+
+    // Curated Compound Presets for Sandbox, Flashcards & Quiz
+    const COMPOUND_PRESETS = [
+      { slots: ["Lo", "Ka", ""], word: "Lo-ka", meaning: "Book / Written physical object", explanation: "Combines 'Word' (Lo) + 'Object' (Ka). Because there is no single word for book, Lo-ka describes a physical thing made of words." },
+      { slots: ["Wa", "Fa", ""], word: "Wa-fa", meaning: "Hot water / Steam", explanation: "Water (Wa) modified by Fire/Heat (Fa) yields heated water or steam." },
+      { slots: ["Fa", "Wa", ""], word: "Fa-wa", meaning: "Liquid fire / Lava", explanation: "Reversing Wa-fa puts Fire (Fa) first as the core concept in Liquid (Wa) form: lava!" },
+      { slots: ["Ka", "Ba", ""], word: "Ka-ba", meaning: "Physically break / Smash / Destroy", explanation: "Uses Before-Particle 'Ka-' (Physical) before 'Ba' (Break) to indicate physical destruction." },
+      { slots: ["Ai", "Ba", ""], word: "Ai-ba", meaning: "Forget / Confuse / Heartbreak", explanation: "Uses Before-Particle 'Ai-' (Mind/Soul) before 'Ba' (Break) to mean mental or emotional breaking." },
+      { slots: ["Lu", "Lu", ""], word: "Lu-lu", meaning: "Places (Plural)", explanation: "Repeating a noun with a hyphen makes it plural: Lu (Place) → Lu-lu (Places)." },
+      { slots: ["Pu", "Pu", ""], word: "Pu-pu", meaning: "Enormous / Huge (Intensified)", explanation: "Repeating a modifier doubles its effect: Pu (Big) → Pu-pu (Enormous)." },
+      { slots: ["Go", "No", ""], word: "Go-no", meaning: "Return / Go back", explanation: "After-Particle '-No' negates/reverses the direction of 'Go' (Move/Travel)." },
+      { slots: ["Se", "No", ""], word: "Se-no", meaning: "Don't know / Unaware", explanation: "After-Particle '-No' negates 'Se' (See/Perceive/Know)." },
+      { slots: ["Le", "Fa", ""], word: "Le-fa", meaning: "Burning or heating something", explanation: "Action particle 'Le-' turns 'Fa' (Fire/Heat) into an active transitive verb." },
+      { slots: ["Le", "Pa", ""], word: "Le-pa", meaning: "Did (Past tense helper)", explanation: "Combines 'Le' (Do) with After-Particle '-Pa' (Past)." },
+      { slots: ["Le", "Te", ""], word: "Le-te", meaning: "Will (Future tense helper)", explanation: "Combines 'Le' (Do) with After-Particle '-Te' (Future)." },
+      { slots: ["Sa", "Do", ""], word: "Sa-do", meaning: "Why?", explanation: "Before-Particle 'Sa-' (Question) + 'Do' (Cause/Make) = 'What cause?' → Why." },
+      { slots: ["Sa", "Ti", ""], word: "Sa-ti", meaning: "When?", explanation: "Before-Particle 'Sa-' (Question) + 'Ti' (Time) = 'What time?' → When." },
+      { slots: ["Sa", "Lu", ""], word: "Sa-lu", meaning: "Where?", explanation: "Before-Particle 'Sa-' (Question) + 'Lu' (Place) = 'What place?' → Where." }
+    ];
+
+    const BEFORE_PARTICLES = ["Ka", "Ai", "Do", "Wo", "Sa"];
+    const AFTER_PARTICLES = ["No", "Pa", "Te", "Vu"];
+
+    // -----------------------------------------------------------------------
+    // 2. NAVIGATION & TOAST HELPERS
+    // -----------------------------------------------------------------------
+    function switchTab(tabId) {
+      // Hide all sections
+      document.querySelectorAll('.tab-section').forEach(sec => sec.classList.add('hidden'));
+      // Show target section
+      const target = document.getElementById(`tab-${tabId}`);
+      if (target) target.classList.remove('hidden');
+
+      // Update nav buttons
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        if (btn.dataset.tab === tabId) {
+          btn.className = "nav-tab px-3.5 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all bg-sand-900 text-white shadow-sm";
+        } else {
+          btn.className = "nav-tab px-3.5 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all text-sand-800 hover:bg-sand-200/70";
+        }
+      });
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function showToast(message) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = "bg-sand-900 text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-lg border border-sand-700 flex items-center gap-2 transition-all duration-300";
+      toast.innerHTML = `<span>✨</span><span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(8px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 2400);
+    }
+
+    // -----------------------------------------------------------------------
+    // 3. PHONETIC ENGINE & WEB SPEECH API AUDIO SIMULATION
+    // -----------------------------------------------------------------------
+    function lokuToPhoneticSpoken(text) {
+      // Converts Lo-ku spelling into English-approximated phonetic syllables
+      // Rules: A=ah, E=eh, I=ee, O=oh, U=oo; Exceptions: Ai=eye, In=in, On=on
+      const tokens = text.trim().split(/(\s+|[.,!?-])/);
+      return tokens.map(tok => {
+        if (!tok || /^[\s.,!?-]+$/.test(tok)) return tok === '-' ? ' ' : tok;
+        const clean = tok.toLowerCase();
+        if (clean === 'ai') return 'eye';
+        if (clean === 'in') return 'in';
+        if (clean === 'on') return 'on';
+
+        // Map single vowel or Consonant + Vowel
+        const mapSyllable = (syl) => {
+          if (syl === 'ai') return 'eye';
+          if (syl === 'in') return 'in';
+          if (syl === 'on') return 'on';
+          return syl
+            .replace(/a/g, 'ah')
+            .replace(/e/g, 'eh')
+            .replace(/i/g, 'ee')
+            .replace(/o/g, 'oh')
+            .replace(/u/g, 'oo');
+        };
+        return mapSyllable(clean);
+      }).join('');
+    }
+
+    function speakLoku(lokuText) {
+      if (!('speechSynthesis' in window)) {
+        showToast(`Pronunciation: "${lokuToPhoneticSpoken(lokuText)}"`);
+        return;
+      }
+      try {
+        window.speechSynthesis.cancel();
+        const phoneticString = lokuToPhoneticSpoken(lokuText);
+        const utterance = new SpeechSynthesisUtterance(phoneticString);
+        utterance.rate = 0.88;
+        utterance.pitch = 1.05;
+        window.speechSynthesis.speak(utterance);
+      } catch (e) {
+        showToast(`Phonetic guide: ${lokuToPhoneticSpoken(lokuText)}`);
+      }
+    }
+
+    function speakPhonetic(spokenHint, label) {
+      if (!('speechSynthesis' in window)) {
+        showToast(`${label} sounds like "${spokenHint}"`);
+        return;
+      }
+      try {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(spokenHint);
+        utterance.rate = 0.85;
+        window.speechSynthesis.speak(utterance);
+      } catch (e) {
+        showToast(`${label} → "${spokenHint}"`);
+      }
+    }
+
+    function initVowelCards() {
+      const vowels = [
+        { letter: "A", sound: "ah", exampleEn: "father", exampleLoku: "Ha / Ka / Ma", spoken: "ah" },
+        { letter: "E", sound: "e / eh", exampleEn: "met", exampleLoku: "He / Le / Se", spoken: "eh" },
+        { letter: "I", sound: "ee", exampleEn: "see", exampleLoku: "Mi / Ti / Vi", spoken: "ee" },
+        { letter: "O", sound: "o", exampleEn: "go", exampleLoku: "Lo / Mo / Go", spoken: "oh" },
+        { letter: "U", sound: "oo", exampleEn: "food", exampleLoku: "Yu / Lu / Fu", spoken: "oo" }
+      ];
+
+      const container = document.getElementById('vowel-cards');
+      container.innerHTML = vowels.map(v => `
+        <div onclick="speakPhonetic('${v.spoken}', '${v.letter}')" class="btn-tactile cursor-pointer bg-sand-50 hover:bg-terracotta-50/60 rounded-2xl p-4 border border-sand-200 hover:border-terracotta-500/40 transition-all flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-3xl font-extrabold font-mono text-terracotta-600">${v.letter}</span>
+            <span class="px-2 py-0.5 rounded-lg bg-white border border-sand-200 text-xs font-mono font-bold text-sand-900">/${v.sound}/</span>
+          </div>
+          <div class="mt-3 space-y-1">
+            <div class="text-xs text-sand-800/80">As in English <strong>"${v.exampleEn}"</strong></div>
+            <div class="text-[11px] font-mono text-sage-700 font-semibold">e.g. ${v.exampleLoku}</div>
+          </div>
+          <div class="mt-3 pt-2 border-t border-sand-200/70 flex items-center justify-between text-[11px] font-bold text-sand-800/60">
+            <span>Click to hear</span>
+            <span>🔊</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function testCustomPhonetics() {
+      const input = document.getElementById('phonetic-tester-input').value.trim();
+      if (!input) return;
+      const breakdown = lokuToPhoneticSpoken(input);
+      const out = document.getElementById('phonetic-breakdown-output');
+      out.classList.remove('hidden');
+      out.innerHTML = `<span class="font-bold text-terracotta-600">Syllable Guide:</span> ${breakdown}`;
+      speakLoku(input);
+    }
+
+    // -----------------------------------------------------------------------
+    // 4. DICTIONARY & WORD COMBINER SANDBOX
+    // -----------------------------------------------------------------------
+    let activeCategory = "All";
+
+    function initDictionary() {
+      const categories = [
+        "All",
+        "Pronouns",
+        "Nouns/Concepts",
+        "Verbs/Actions",
+        "Modifiers/Colors",
+        "Particles/Grammar/Connectors",
+        "Numbers"
+      ];
+
+      const filterContainer = document.getElementById('dict-category-filters');
+      filterContainer.innerHTML = categories.map(cat => `
+        <button
+          onclick="setDictionaryCategory('${cat}')"
+          data-cat="${cat}"
+          class="dict-cat-btn px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+            cat === 'All'
+              ? 'bg-sand-900 text-white border-sand-900'
+              : 'bg-sand-50 text-sand-800 border-sand-200 hover:bg-sand-100'
+          }">
+          ${cat}
+        </button>
+      `).join('');
+
+      document.getElementById('dict-total-count').textContent = LOKU_LEXICON.length;
+      renderDictionary();
+    }
+
+    function setDictionaryCategory(cat) {
+      activeCategory = cat;
+      document.querySelectorAll('.dict-cat-btn').forEach(btn => {
+        if (btn.dataset.cat === cat) {
+          btn.className = "dict-cat-btn px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all bg-sand-900 text-white border-sand-900";
+        } else {
+          btn.className = "dict-cat-btn px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all bg-sand-50 text-sand-800 border-sand-200 hover:bg-sand-100";
+        }
+      });
+      renderDictionary();
+    }
+
+    function renderDictionary() {
+      const query = document.getElementById('dict-search').value.trim().toLowerCase();
+      const grid = document.getElementById('dict-grid');
+
+      const filtered = LOKU_LEXICON.filter(item => {
+        const matchesCat = activeCategory === "All" || item.category === activeCategory;
+        const matchesSearch =
+          !query ||
+          item.word.toLowerCase().includes(query) ||
+          item.meaning.toLowerCase().includes(query) ||
+          (item.note && item.note.toLowerCase().includes(query));
+        return matchesCat && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full text-center py-12 bg-sand-50 rounded-2xl border border-sand-200">
+            <p class="text-base font-bold text-sand-900">No matching Lo-ku roots found.</p>
+            <p class="text-xs text-sand-800/70 mt-1">Try searching another English concept or combine two words in the Sandbox above!</p>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(item => {
+        let badgeHtml = '';
+        if (item.particle === 'Before-Particle') {
+          badgeHtml = `<span class="px-2 py-0.5 rounded-md bg-terracotta-100 text-terracotta-700 text-[10px] font-extrabold uppercase">Before-Particle</span>`;
+        } else if (item.particle === 'After-Particle') {
+          badgeHtml = `<span class="px-2 py-0.5 rounded-md bg-sage-100 text-sage-700 text-[10px] font-extrabold uppercase">After-Particle</span>`;
+        } else if (item.particle === 'Action Particle') {
+          badgeHtml = `<span class="px-2 py-0.5 rounded-md bg-ochre-100 text-ochre-600 text-[10px] font-extrabold uppercase">Action Particle</span>`;
+        }
+
+        // Color swatch if it's a color word
+        const colorSwatches = {
+          Ri: '#EF4444', Bi: '#3B82F6', Yi: '#EAB308',
+          Wi: '#FFFFFF', Bu: '#18181B', De: '#9CA3AF', We: '#78350F'
+        };
+        const swatch = colorSwatches[item.word]
+          ? `<span class="w-3.5 h-3.5 rounded-full border border-sand-300 inline-block shrink-0" style="background-color:${colorSwatches[item.word]}"></span>`
+          : '';
+
+        return `
+          <div class="bg-sand-50/70 hover:bg-white rounded-2xl p-4 border border-sand-200 hover:border-sand-300 transition-all flex flex-col justify-between space-y-3 shadow-2xs">
+            <div>
+              <div class="flex items-start justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  ${swatch}
+                  <span class="text-2xl font-extrabold font-mono text-sand-900">${item.word}</span>
+                  <span class="text-xs font-mono text-sand-800/60">/${item.phonetic}/</span>
+                </div>
+                <button onclick="speakLoku('${item.word}')" class="p-1.5 rounded-lg bg-white hover:bg-terracotta-50 text-sand-800 hover:text-terracotta-600 border border-sand-200 text-xs" title="Pronounce ${item.word}">
+                  🔊
+                </button>
+              </div>
+              <div class="mt-1.5 font-bold text-sm text-sand-900 leading-snug">
+                ${item.meaning}
+              </div>
+              <p class="mt-1.5 text-xs text-sand-800/75 leading-relaxed">
+                ${item.note}
+              </p>
+            </div>
+
+            <div class="pt-2 border-t border-sand-200/70 flex items-center justify-between gap-2">
+              <span class="text-[10px] font-semibold text-sand-800/60 truncate">${item.category}</span>
+              ${badgeHtml}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Compound Word Combiner Sandbox Logic
+    function initCombiner() {
+      const s1 = document.getElementById('comb-slot-1');
+      const s2 = document.getElementById('comb-slot-2');
+      const s3 = document.getElementById('comb-slot-3');
+
+      const optionsHtml = LOKU_LEXICON.map(item =>
+        `<option value="${item.word}">${item.word} — ${item.meaning.split('/')[0].trim()}</option>`
+      ).join('');
+
+      s1.innerHTML = `<option value="">(None)</option>` + optionsHtml;
+      s2.innerHTML = `<option value="">(None)</option>` + optionsHtml;
+      s3.innerHTML = `<option value="">(None)</option>` + optionsHtml;
+
+      // Default to Lo-ka (Book)
+      s1.value = "Lo";
+      s2.value = "Ka";
+      s3.value = "";
+
+      // Render Presets
+      const presetContainer = document.getElementById('combiner-presets');
+      presetContainer.innerHTML = COMPOUND_PRESETS.slice(0, 10).map((p, idx) => `
+        <button onclick="applyCombinerPreset(${idx})" class="px-2.5 py-1.5 rounded-xl bg-sand-100 hover:bg-terracotta-100 text-sand-900 hover:text-terracotta-700 border border-sand-300 text-xs font-mono font-bold transition-colors">
+          ${p.word} <span class="font-sans font-normal text-sand-800/70">(${p.meaning.split('/')[0].trim()})</span>
+        </button>
+      `).join('');
+
+      updateCombiner();
+    }
+
+    function applyCombinerPreset(idx) {
+      const preset = COMPOUND_PRESETS[idx];
+      if (!preset) return;
+      document.getElementById('comb-slot-1').value = preset.slots[0] || "";
+      document.getElementById('comb-slot-2').value = preset.slots[1] || "";
+      document.getElementById('comb-slot-3').value = preset.slots[2] || "";
+      updateCombiner();
+    }
+
+    function swapSlots1And2() {
+      const s1 = document.getElementById('comb-slot-1');
+      const s2 = document.getElementById('comb-slot-2');
+      const temp = s1.value;
+      s1.value = s2.value;
+      s2.value = temp;
+      updateCombiner();
+    }
+
+    function resetCombiner() {
+      document.getElementById('comb-slot-1').value = "";
+      document.getElementById('comb-slot-2').value = "";
+      document.getElementById('comb-slot-3').value = "";
+      updateCombiner();
+    }
+
+    function updateCombiner() {
+      const v1 = document.getElementById('comb-slot-1').value;
+      const v2 = document.getElementById('comb-slot-2').value;
+      const v3 = document.getElementById('comb-slot-3').value;
+
+      const selected = [v1, v2, v3].filter(Boolean);
+      const outWord = document.getElementById('comb-output-word');
+      const literalEl = document.getElementById('comb-literal-breakdown');
+      const meaningBox = document.getElementById('comb-meaning-box');
+      const lintBox = document.getElementById('comb-particle-lint');
+
+      if (selected.length === 0) {
+        outWord.textContent = "—";
+        literalEl.innerHTML = `Literal: <span class="text-sand-400">Select roots on the left</span>`;
+        meaningBox.innerHTML = `Pick 2 or 3 roots to build a hyphenated Lo-ku compound word.`;
+        lintBox.className = "text-xs rounded-xl p-3 bg-sand-800 border border-sand-700 text-sand-300";
+        lintBox.textContent = "Waiting for roots...";
+        return;
+      }
+
+      // Format hyphenated word (Capitalize first syllable, lowercase subsequent)
+      const formattedWord = selected
+        .map((w, i) => (i === 0 ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : w.toLowerCase()))
+        .join('-');
+      outWord.textContent = formattedWord;
+
+      const rootObjs = selected.map(w => LOKU_LEXICON.find(item => item.word === w));
+      const literalChain = rootObjs.map(r => r.meaning.split('/')[0].trim()).join(' + ');
+      literalEl.innerHTML = `Literal: <span class="text-white font-bold">${literalChain}</span>`;
+
+      // Check if it matches a canon preset
+      const canonMatch = COMPOUND_PRESETS.find(
+        p => p.word.toLowerCase() === formattedWord.toLowerCase()
+      );
+
+      if (canonMatch) {
+        meaningBox.innerHTML = `<strong>Canon Meaning:</strong> ${canonMatch.meaning}<br><span class="text-xs text-sand-300 mt-1 block">${canonMatch.explanation}</span>`;
+      } else if (selected.length === 2 && selected[0] === selected[1]) {
+        meaningBox.innerHTML = `<strong>Reduplicated Plural / Intensifier:</strong> Pluralizes <em>"${rootObjs[0].meaning.split('/')[0].trim()}"</em> or doubles its intensity!`;
+      } else if (formattedWord.toLowerCase() === 'ka-lo') {
+        meaningBox.innerHTML = `<strong>Literal:</strong> Object-word. <span class="text-ochre-100">Tip:</span> To say "Book", Lo-ku prefers <strong>Lo-ka</strong> ("Word-object") rather than Ka-lo!`;
+      } else {
+        meaningBox.innerHTML = `<strong>Custom Compound:</strong> Combines <em>${literalChain}</em> into a descriptive concept. Remember: the first root sets the main category or particle role.`;
+      }
+
+      // Particle placement check
+      const first = selected[0];
+      const last = selected[selected.length - 1];
+      let warnings = [];
+
+      if (AFTER_PARTICLES.includes(first) && selected.length > 1) {
+        warnings.push(`"${first}" is an After-Particle (No, Pa, Te, Vu) and usually goes at the END of a word (e.g., Go-${first.toLowerCase()}).`);
+      }
+      if (BEFORE_PARTICLES.includes(last) && selected.length > 1) {
+        warnings.push(`"${last}" is a Before-Particle (Ka, Ai, Do, Wo, Sa) and usually goes at the START of a word.`);
+      }
+
+      if (warnings.length > 0) {
+        lintBox.className = "text-xs rounded-xl p-3 bg-terracotta-700/50 border border-terracotta-500/50 text-terracotta-100";
+        lintBox.innerHTML = `⚠️ <strong>Particle Order Note:</strong> ${warnings.join(' ')}`;
+      } else {
+        lintBox.className = "text-xs rounded-xl p-3 bg-sage-700/40 border border-sage-500/40 text-sage-100";
+        lintBox.innerHTML = `✅ <strong>Valid Particle & Hyphen Structure:</strong> Ready to use in a SVO sentence!`;
+      }
+    }
+
+    function speakCombinerResult() {
+      const word = document.getElementById('comb-output-word').textContent;
+      if (word && word !== '—') speakLoku(word);
+    }
+
+    // -----------------------------------------------------------------------
+    // 5. INTERACTIVE NUMBER BUILDER (0 to 9,999)
+    // -----------------------------------------------------------------------
+    const DIGIT_WORDS = ["O", "I", "Ni", "Ne", "Yo", "Gu", "Ru", "Si", "Ye", "Ko"];
+
+    function buildLokuNumber(num) {
+      if (isNaN(num) || num < 0 || num > 9999) {
+        return { word: "Invalid (0–9999)", parts: [] };
+      }
+      num = Math.floor(num);
+      if (num === 0) {
+        return { word: "O", parts: [{ loku: "O", desc: "0 (Zero)" }] };
+      }
+
+      const thousands = Math.floor(num / 1000);
+      const hundreds = Math.floor((num % 1000) / 100);
+      const tens = Math.floor((num % 100) / 10);
+      const ones = num % 10;
+
+      const tokens = [];
+      const parts = [];
+
+      if (thousands > 0) {
+        tokens.push(DIGIT_WORDS[thousands], "Tu");
+        parts.push({ loku: `${DIGIT_WORDS[thousands]}-tu`, desc: `${thousands} thousand (${thousands * 1000})` });
+      }
+      if (hundreds > 0) {
+        tokens.push(DIGIT_WORDS[hundreds], "Hu");
+        parts.push({ loku: `${DIGIT_WORDS[hundreds]}-hu`, desc: `${hundreds} hundred (${hundreds * 100})` });
+      }
+      if (tens > 0) {
+        tokens.push(DIGIT_WORDS[tens], "So");
+        parts.push({ loku: `${DIGIT_WORDS[tens]}-so`, desc: `${tens} ten (${tens * 10})` });
+      }
+      if (ones > 0) {
+        tokens.push(DIGIT_WORDS[ones]);
+        parts.push({ loku: `${DIGIT_WORDS[ones]}`, desc: `${ones}` });
+      }
+
+      const formatted = tokens
+        .map((t, idx) => (idx === 0 ? t : t.toLowerCase()))
+        .join('-');
+
+      return { word: formatted, parts };
+    }
+
+    function convertNumberToLoku() {
+      const raw = document.getElementById('number-input').value;
+      const num = parseInt(raw, 10);
+      const outEl = document.getElementById('num-loku-output');
+      const pillsEl = document.getElementById('num-breakdown-pills');
+
+      if (raw === '' || isNaN(num) || num < 0 || num > 9999) {
+        outEl.textContent = "Enter 0 – 9999";
+        pillsEl.innerHTML = `<span class="text-xs text-sand-400">Supports whole numbers from 0 up to 9,999.</span>`;
+        return;
+      }
+
+      const res = buildLokuNumber(num);
+      outEl.textContent = res.word;
+      pillsEl.innerHTML = res.parts.map(p => `
+        <div class="px-3 py-1.5 rounded-xl bg-sand-800 border border-sand-700 text-xs">
+          <span class="font-mono font-bold text-ochre-100">${p.loku}</span>
+          <span class="text-sand-300 ml-1">= ${p.desc}</span>
+        </div>
+      `).join('');
+    }
+
+    function setNumberInput(val) {
+      document.getElementById('number-input').value = val;
+      convertNumberToLoku();
+    }
+
+    function randomLokuNumber() {
+      const rand = Math.floor(Math.random() * 9999) + 1;
+      setNumberInput(rand);
+    }
+
+    function speakNumberResult() {
+      const text = document.getElementById('num-loku-output').textContent;
+      if (text && !text.startsWith('Enter')) speakLoku(text);
+    }
+
+    function copyNumberResult() {
+      const text = document.getElementById('num-loku-output').textContent;
+      if (!text || text.startsWith('Enter')) return;
+      const tempInput = document.createElement('input');
+      tempInput.value = text;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempInput);
+      showToast(`Copied "${text}" to clipboard!`);
+    }
+
+    function initNumberReferenceGrid() {
+      const nums = LOKU_LEXICON.filter(item => item.category === "Numbers");
+      const grid = document.getElementById('number-reference-grid');
+      grid.innerHTML = nums.map(n => `
+        <button onclick="speakLoku('${n.word}')" class="btn-tactile bg-sand-50 hover:bg-terracotta-50 rounded-2xl p-3 border border-sand-200 text-left transition-all">
+          <div class="flex items-center justify-between">
+            <span class="font-mono text-xl font-extrabold text-terracotta-600">${n.word}</span>
+            <span class="text-xs">🔊</span>
+          </div>
+          <div class="text-xs font-bold text-sand-900 mt-1">${n.meaning}</div>
+        </button>
+      `).join('');
+    }
+
+    // -----------------------------------------------------------------------
+    // 6. PRACTICE ARENA: FLASHCARDS & QUIZ
+    // -----------------------------------------------------------------------
+    let flashcardDeck = [];
+    let currentCardIndex = 0;
+    let isCardFlipped = false;
+
+    function setPracticeMode(mode) {
+      const fcView = document.getElementById('practice-flashcards');
+      const qzView = document.getElementById('practice-quiz');
+      const btnFc = document.getElementById('mode-btn-flashcards');
+      const btnQz = document.getElementById('mode-btn-quiz');
+
+      if (mode === 'flashcards') {
+        fcView.classList.remove('hidden');
+        qzView.classList.add('hidden');
+        btnFc.className = "px-4 py-2 rounded-xl text-sm font-bold bg-white text-sand-900 shadow-xs transition-all";
+        btnQz.className = "px-4 py-2 rounded-xl text-sm font-bold text-sand-800 hover:text-sand-900 transition-all";
+      } else {
+        fcView.classList.add('hidden');
+        qzView.classList.remove('hidden');
+        btnQz.className = "px-4 py-2 rounded-xl text-sm font-bold bg-white text-sand-900 shadow-xs transition-all";
+        btnFc.className = "px-4 py-2 rounded-xl text-sm font-bold text-sand-800 hover:text-sand-900 transition-all";
+        if (quizTotal === 0) generateQuizQuestion();
+      }
+    }
+
+    function initFlashcards() {
+      const deckType = document.getElementById('flashcard-deck-select').value;
+      const compoundCards = COMPOUND_PRESETS.map(c => ({
+        word: c.word,
+        phonetic: lokuToPhoneticSpoken(c.word),
+        category: "Compound / Particle",
+        meaning: c.meaning,
+        note: c.explanation
+      }));
+
+      if (deckType === 'all') {
+        flashcardDeck = [...LOKU_LEXICON, ...compoundCards];
+      } else if (deckType === 'core') {
+        flashcardDeck = [...LOKU_LEXICON];
+      } else if (deckType === 'compounds') {
+        flashcardDeck = [...compoundCards];
+      } else {
+        flashcardDeck = LOKU_LEXICON.filter(item => item.category === deckType);
+      }
+
+      currentCardIndex = 0;
+      isCardFlipped = false;
+      renderFlashcard();
+    }
+
+    function shuffleFlashcards() {
+      for (let i = flashcardDeck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [flashcardDeck[i], flashcardDeck[j]] = [flashcardDeck[j], flashcardDeck[i]];
+      }
+      currentCardIndex = 0;
+      isCardFlipped = false;
+      renderFlashcard();
+      showToast("Deck shuffled!");
+    }
+
+    function renderFlashcard() {
+      const card = flashcardDeck[currentCardIndex];
+      if (!card) return;
+
+      const inner = document.getElementById('flashcard-inner');
+      if (isCardFlipped) {
+        inner.classList.add('rotate-y-180');
+      } else {
+        inner.classList.remove('rotate-y-180');
+      }
+
+      document.getElementById('fc-counter').textContent = `${currentCardIndex + 1} / ${flashcardDeck.length}`;
+      document.getElementById('fc-category-badge').textContent = card.category;
+      document.getElementById('fc-front-word').textContent = card.word;
+      document.getElementById('fc-front-phonetic').textContent = `/${card.phonetic}/`;
+
+      document.getElementById('fc-back-mini').textContent = card.word;
+      document.getElementById('fc-back-meaning').textContent = card.meaning;
+      document.getElementById('fc-back-note').textContent = card.note || "";
+    }
+
+    function flipFlashcard() {
+      isCardFlipped = !isCardFlipped;
+      renderFlashcard();
+    }
+
+    function nextFlashcard() {
+      isCardFlipped = false;
+      currentCardIndex = (currentCardIndex + 1) % flashcardDeck.length;
+      renderFlashcard();
+    }
+
+    function prevFlashcard() {
+      isCardFlipped = false;
+      currentCardIndex = (currentCardIndex - 1 + flashcardDeck.length) % flashcardDeck.length;
+      renderFlashcard();
+    }
+
+    function speakCurrentFlashcard() {
+      const card = flashcardDeck[currentCardIndex];
+      if (card) speakLoku(card.word);
+    }
+
+    // Quiz Engine
+    let quizScore = 0;
+    let quizTotal = 0;
+    let quizStreak = 0;
+    let currentQuizQuestion = null;
+    let quizAnswered = false;
+
+    const STATIC_QUIZ_BANK = [
+      {
+        badge: "Compound Word Logic",
+        question: "How do you say 'Book' in Lo-ku?",
+        hint: "Combine the roots for 'Word' and 'Object'.",
+        options: ["Lo-ka", "Ka-lo", "Lo-pu", "Ai-ka"],
+        answer: "Lo-ka",
+        explanation: "'Lo-ka' literally translates to 'Word-object'. Word order matters: Lo-ka makes logical sense for book, whereas Ka-lo would mean 'Object-word'."
+      },
+      {
+        badge: "Compound Word Order",
+        question: "What is the difference between 'Wa-fa' and 'Fa-wa'?",
+        hint: "Wa = Water, Fa = Fire.",
+        options: [
+          "Wa-fa = Hot water/Steam; Fa-wa = Lava",
+          "Wa-fa = Lava; Fa-wa = Hot water/Steam",
+          "Both mean 'Extinguish fire'",
+          "Wa-fa = Rain; Fa-wa = Sunlight"
+        ],
+        answer: "Wa-fa = Hot water/Steam; Fa-wa = Lava",
+        explanation: "In Lo-ku compounds, order changes meaning: Wa-fa (Water + Fire) is hot water or steam, while Fa-wa (Fire + Water) is liquid fire or lava!"
+      },
+      {
+        badge: "Before-Particle Placement",
+        question: "Which phrase means 'to forget, confuse, or heartbreak'?",
+        hint: "Compare physical breaking (Ka-ba) with mental/emotional breaking.",
+        options: ["Ai-ba", "Ba-ai", "Ka-ba", "No-ba"],
+        answer: "Ai-ba",
+        explanation: "'Ai-' is a Before-Particle representing Mind/Soul/Abstract meaning. Attached before 'Ba' (Break), 'Ai-ba' means forget, confuse, or heartbreak."
+      },
+      {
+        badge: "Polite Questions",
+        question: "What is the preferred, more polite way to ask 'Is this you?'",
+        hint: "Uses the question particle 'Sa' at the start.",
+        options: ["Sa an li yu?", "An li yu sa?", "Li yu an?", "Yu sa an li?"],
+        answer: "Sa an li yu?",
+        explanation: "While 'An li yu?' is understood, placing the question particle 'Sa' at the beginning ('Sa an li yu?') is preferred and more polite."
+      },
+      {
+        badge: "After-Particle Placement",
+        question: "How do you say 'Return' (go back) or 'Don't know'?",
+        hint: "The negation particle 'No' attaches AFTER the verb.",
+        options: ["Go-no / Se-no", "No-go / No-se", "Pa-go / Pa-se", "Sa-go / Sa-se"],
+        answer: "Go-no / Se-no",
+        explanation: "'No' is an After-Particle! It attaches after verbs to negate or reverse them: Go-no (return) and Se-no (don't know)."
+      },
+      {
+        badge: "Reduplication",
+        question: "What does 'Pu-pu' mean in Lo-ku?",
+        hint: "Pu = Big. Saying a word twice with a hyphen doubles its effect.",
+        options: ["Enormous / Huge", "Small / Weak", "Two big things", "Not big"],
+        answer: "Enormous / Huge",
+        explanation: "Reduplicating a word with a hyphen makes nouns plural (Lu-lu = Places) or doubles a modifier's intensity (Pu-pu = Enormous)."
+      },
+      {
+        badge: "Number System",
+        question: "How is the number 9,481 written in Lo-ku?",
+        hint: "9 thousand (Ko-tu) + 4 hundred (yo-hu) + 8 ten (ye-so) + 1 (i).",
+        options: [
+          "Ko-tu-yo-hu-ye-so-i",
+          "Ko-yo-ye-i",
+          "Tu-ko-hu-yo-so-ye-i",
+          "Ko-hu-yo-tu-ye-so-i"
+        ],
+        answer: "Ko-tu-yo-hu-ye-so-i",
+        explanation: "9,481 breaks down cleanly into Ko-tu (9,000) + yo-hu (400) + ye-so (80) + i (1) → Ko-tu-yo-hu-ye-so-i!"
+      },
+      {
+        badge: "Pronunciation Exceptions",
+        question: "How is the Lo-ku word 'Ai' (Mind / Soul) pronounced?",
+        hint: "It is one of the 3 pronunciation exceptions alongside 'In' and 'On'.",
+        options: [
+          "Like the English word 'eye'",
+          "Like 'ah-ee' (two syllables)",
+          "Like 'ay' in 'day'",
+          "Like 'ee' in 'see'"
+        ],
+        answer: "Like the English word 'eye'",
+        explanation: "'Ai' is pronounced like English 'eye', and 'In' and 'On' are pronounced just like their standard English counterparts."
+      },
+      {
+        badge: "Question Words",
+        question: "Which combination means 'Where?'",
+        hint: "Combine Question particle 'Sa-' + Place 'Lu'.",
+        options: ["Sa-lu", "Sa-ti", "Sa-do", "Lu-sa"],
+        answer: "Sa-lu",
+        explanation: "'Sa-' is a Before-Particle: Sa-lu = Where (what place), Sa-ti = When (what time), and Sa-do = Why (what cause)."
+      },
+      {
+        badge: "Tense & Action",
+        question: "How do you form 'did' (Past) and 'will' (Future) using 'Le' (Do)?",
+        hint: "Pa (Past) and Te (Future) are After-Particles.",
+        options: ["Le-pa / Le-te", "Pa-le / Te-le", "Le-vu / Le-no", "Do-pa / Do-te"],
+        answer: "Le-pa / Le-te",
+        explanation: "Combining 'Le' (Do) with After-Particles '-Pa' and '-Te' gives 'Le-pa' (did) and 'Le-te' (will)."
+      }
+    ];
+
+    function generateQuizQuestion() {
+      quizAnswered = false;
+      const feedbackBox = document.getElementById('quiz-feedback');
+      feedbackBox.classList.add('hidden');
+
+      // 50% chance of curated grammar/compound question, 50% dynamic vocabulary question
+      if (Math.random() < 0.55) {
+        const randStatic = STATIC_QUIZ_BANK[Math.floor(Math.random() * STATIC_QUIZ_BANK.length)];
+        const shuffledOpts = [...randStatic.options].sort(() => Math.random() - 0.5);
+        currentQuizQuestion = { ...randStatic, options: shuffledOpts };
+      } else {
+        const target = LOKU_LEXICON[Math.floor(Math.random() * LOKU_LEXICON.length)];
+        const distractors = LOKU_LEXICON
+          .filter(item => item.word !== target.word)
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 3);
+        const options = [target, ...distractors]
+          .map(item => item.meaning)
+          .sort(() => Math.random() - 0.5);
+
+        currentQuizQuestion = {
+          badge: `Vocabulary • ${target.category}`,
+          question: `What does the Lo-ku word "${target.word}" mean?`,
+          hint: `Pronounced /${target.phonetic}/. Click any option to check your answer.`,
+          options,
+          answer: target.meaning,
+          explanation: `${target.word} (/${target.phonetic}/) means "${target.meaning}". ${target.note}`
+        };
+      }
+
+      document.getElementById('quiz-type-badge').textContent = currentQuizQuestion.badge;
+      document.getElementById('quiz-question-text').textContent = currentQuizQuestion.question;
+      document.getElementById('quiz-question-hint').textContent = currentQuizQuestion.hint;
+
+      const optContainer = document.getElementById('quiz-options');
+      optContainer.innerHTML = currentQuizQuestion.options.map((opt, idx) => `
+        <button
+          onclick="submitQuizAnswer(${idx})"
+          class="quiz-opt-btn btn-tactile text-left p-4 rounded-2xl bg-sand-50 hover:bg-sand-100 border-2 border-sand-200 font-bold text-sm text-sand-900 transition-all">
+          ${opt}
+        </button>
+      `).join('');
+    }
+
+    function submitQuizAnswer(selectedIdx) {
+      if (quizAnswered) return;
+      quizAnswered = true;
+      quizTotal++;
+
+      const selectedOpt = currentQuizQuestion.options[selectedIdx];
+      const isCorrect = selectedOpt === currentQuizQuestion.answer;
+
+      if (isCorrect) {
+        quizScore++;
+        quizStreak++;
+      } else {
+        quizStreak = 0;
+      }
+
+      document.getElementById('quiz-score').textContent = `${quizScore} / ${quizTotal}`;
+      document.getElementById('quiz-streak').textContent = `${quizStreak} 🔥`;
+
+      // Style buttons
+      const buttons = document.querySelectorAll('.quiz-opt-btn');
+      buttons.forEach((btn, i) => {
+        const val = currentQuizQuestion.options[i];
+        btn.disabled = true;
+        if (val === currentQuizQuestion.answer) {
+          btn.className = "quiz-opt-btn text-left p-4 rounded-2xl bg-sage-100 border-2 border-sage-500 font-bold text-sm text-sage-700";
+        } else if (i === selectedIdx && !isCorrect) {
+          btn.className = "quiz-opt-btn text-left p-4 rounded-2xl bg-terracotta-100 border-2 border-terracotta-500 font-bold text-sm text-terracotta-700";
+        } else {
+          btn.className = "quiz-opt-btn text-left p-4 rounded-2xl bg-sand-50 border-2 border-sand-200 font-bold text-sm text-sand-800/50";
+        }
+      });
+
+      const fb = document.getElementById('quiz-feedback');
+      const fbTitle = document.getElementById('quiz-feedback-title');
+      const fbExp = document.getElementById('quiz-feedback-explanation');
+
+      fb.classList.remove('hidden');
+      if (isCorrect) {
+        fb.className = "rounded-2xl p-4 border-2 border-sage-500/40 bg-sage-50 text-sage-700 text-sm leading-relaxed space-y-2";
+        fbTitle.textContent = "Mo! (Correct!)";
+      } else {
+        fb.className = "rounded-2xl p-4 border-2 border-terracotta-500/40 bg-terracotta-50 text-terracotta-700 text-sm leading-relaxed space-y-2";
+        fbTitle.textContent = "Po! Not quite — here's why:";
+      }
+      fbExp.textContent = currentQuizQuestion.explanation;
+    }
+
+    // -----------------------------------------------------------------------
+    // 7. INITIALIZE APPLICATION ON LOAD
+    // -----------------------------------------------------------------------
+    window.addEventListener('DOMContentLoaded', () => {
+      initVowelCards();
+      initCombiner();
+      initDictionary();
+      convertNumberToLoku();
+      initNumberReferenceGrid();
+      initFlashcards();
+    });
+  </script>
+</body>
+</html>
